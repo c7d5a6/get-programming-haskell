@@ -6,6 +6,12 @@ names = [("Ian", "Curtis"),
          ("Ann", "Hook"),
          ("Stephen","Morris")]
 
+noNegativeDiff :: Int -> Int -> Int
+noNegativeDiff x y = if diff < 0
+		     then 0
+		     else diff
+  where diff = x - y
+
 compareLastNames name1 name2 = if compareLastNames /= EQ
 			       then compareLastNames
                                else compareFirstNames
