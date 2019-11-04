@@ -1,4 +1,26 @@
+class Cipher a where
+  encode :: a -> String -> String
+  decode :: a -> String -> String
+
+
+type Bits = [Bool]
+
+data Rot = Rot
 data FourLetterAlphabet = L1 | L2 | L3 | L4 deriving (Show,Enum,Bounded)
+data OneTimePad = OTP String
+data StreamCipher = StreamText Int
+
+
+instance Cipher Rot where
+        encode Rot text = rotEncoder text
+        decode Rot text = rotDecoder text
+instance Cipher OneTimePad where
+        encode (OTP pad) text = applyOTP pad text
+        decode (OTP pad) text = applyOTP pad text
+instance Cipher StreamCipher where
+	encode (StreamText n) text = applyOTP (exampleStreamText n) text
+	decode (StreamText n) text = applyOTP (exampleStreamText n) text
+
 
 rotN :: (Bounded a, Enum a) => Int -> a -> a
 rotN alphabetSize c = toEnum rotation
@@ -39,7 +61,6 @@ rotDecoder text = map rotCharDecoder text
         alphaSize      = 1 + fromEnum (maxBound :: Char)
         rotCharDecoder = rotNdecoder alphaSize
 
-type Bits = [Bool]
 
 intToBits' :: Int -> Bits
 intToBits' 0 = [False]
@@ -74,7 +95,6 @@ bitsToInt bits = sum (map (\x -> 2 ^ (snd x)) trueLocations)
 bitsToChar :: Bits -> Char
 bitsToChar bits = toEnum (bitsToInt bits)
 
-
 xorBool :: Bool -> Bool -> Bool
 xorBool value1 value2 = (value1 || value2) && (not (value1 && value2))
 
@@ -104,45 +124,14 @@ applyOTP pad plaintext = map bitsToChar bitList
 encoderDecoder :: String -> String
 encoderDecoder = applyOTP myPad
 
-class Cipher a where
-  encode :: a -> String -> String
-  decode :: a -> String -> String
-
-data Rot = Rot
-
-instance Cipher Rot where
-        encode Rot text = rotEncoder text
-        decode Rot text = rotDecoder text
-
-data OneTimePad = OTP String
-
-instance Cipher OneTimePad where
-        encode (OTP pad) text = applyOTP pad text
-        decode (OTP pad) text = applyOTP pad text
-
 myOTP :: OneTimePad
 myOTP = OTP (cycle [minBound .. maxBound])
 
 prng :: Int -> Int -> Int -> Int -> Int
 prng a b maxNumber seed = (a * seed + b) `mod` maxNumber
 
-examplePRNG :: Int -> Int
-examplePRNG = prng 1337 7 100
+--examplePRNG :: Int -> Int
+examplePRNG = prng 1337 7
 
-exampleOTP :: OneTimePad
-exampleOTP = OTP
-        (cycle
-                (map
-                        (\x -> toEnum x)
-                        (map (\x -> examplePRNG x)
-                             [minBound :: Int .. maxBound :: Int]
-                        )
-                )
-        )
-
-data StreamCipher = StreamCipher
-
-instance Cipher StreamCipher where
-        encode text = applyOTP exampleOTP text
-        decode text = applyOTP exampleOTP text
-
+--exampleStreamText ::
+exampleStreamText maxNumber = (map (\x -> toEnum x) (map (\x -> examplePRNG maxNumber x) (cycle [minBound :: Int .. maxBound :: Int])))
